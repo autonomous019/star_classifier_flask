@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Classifier</title>
+</head>
+
+<body>
+
+    <div style="color:rgb(204, 204, 219)">
+        <form action="{{ url_for('predict')}}" method="post">
+            <h2>Get Star Type Classification</h2>
+
+            <p>Classify a Star and get it's Type from inputing four variables</p>
+
+<!--
+Temperature (K),Luminosity(L/Lo),Radius(R/Ro),Absolute magnitude(Mv),Star type,Star color,Spectral Class
+3068,0.0024,0.17,16.12,0,Red,M
+-->
+            <h3>Refractive Index</h3>
+            <input id="Temperature (K)" name="Temperature (K)" type="number ">
+
+            <h3>Luminosity(L/Lo) (With decimal precision)</h3><br><input id="Luminosity(L/Lo)" name="Luminosity(L/Lo)" required="required">
+
+            <h3>Radius(R/Ro)? (With decimal precision)</h3><br><input id="Radius(R/Ro)" name="Radius(R/Ro)" required="required">
+
+            <h3>Absolute magnitude(Mv) (With decimal precision)</h3><br><input id="Absolute magnitude(Mv)" name="Absolute magnitude(Mv)" required="required">
+
+
+            
+            <br><br><button id="sub" type="submit ">Classify Star</button>
+            <br>
+            <br>
+
+            
+        </form>
+
+
+
+        <br><br><h3>{{ prediction_text }}<h3>
+    </div>
+
+
+
+
+    <style>
+        body {
+            background-color: rgb(0, 0, 0);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            text-align: center;
+            padding: 0px;
+        }
+        
+        #research {
+            font-size: 18px;
+            width: 100px;
+            height: 23px;
+            top: 23px;
+        }
+        
+        #box {
+            border-radius: 60px;
+            border-color: 45px;
+            border-style: solid;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            text-align: center;
+            background-color: rgb(168, 131, 61);
+            font-size: medium;
+            position: absolute;
+            width: 700px;
+            bottom: 9%;
+            height: 850px;
+            right: 30%;
+            padding: 0px;
+            margin: 0px;
+            font-size: 14px;
+        }
+        
+        a:link {
+            color: rgb(129, 216, 231); 
+            background-color: transparent; 
+            text-decoration: none;
+        }
+
+        a:visited {
+            color: rgb(226, 122, 122);
+            background-color: transparent;
+            text-decoration: none;
+        }
+        
+        #sub {
+            width: 120px;
+            height: 43px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 18px;
+        }
+        
+        #sub:hover {
+            background-color: darkcyan;
+        }
+
+    </style>
+</body>
+
+</html>
