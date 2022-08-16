@@ -162,6 +162,27 @@ print(best)
 'subsample': 0.9896752647307849
 }
 
+
+# XGB parameters
+xgb_reg_params = {
+    'learning_rate':    hp.choice('learning_rate',    np.arange(0.05, 0.31, 0.05)),
+    'max_depth':        hp.choice('max_depth',        np.arange(5, 16, 1, dtype=int)),
+    'min_child_weight': hp.choice('min_child_weight', np.arange(1, 8, 1, dtype=int)),
+    'colsample_bytree': hp.choice('colsample_bytree', np.arange(0.3, 0.8, 0.1)),
+    'subsample':        hp.uniform('subsample', 0.8, 1),
+    'n_estimators':     100,
+}
+xgb_fit_params = {
+    'eval_metric': 'rmse',
+    'early_stopping_rounds': 10,
+    'verbose': False
+}
+xgb_para = dict()
+xgb_para['reg_params'] = xgb_reg_params
+xgb_para['fit_params'] = xgb_fit_params
+xgb_para['loss_func' ] = lambda y, pred: np.sqrt(mean_squared_error(y, pred))
+for more information see: https://medium.com/towards-data-science/an-example-of-hyperparameter-optimization-on-xgboost-lightgbm-and-catboost-using-hyperopt-12bc41a271e
+
 these values gave a badd result so have to check baseline arguments as valid or not
 ########## end hyperparamater optimization routine#################
 '''
