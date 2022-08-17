@@ -3,7 +3,8 @@
 star classifier using xgboost, web application uses Flask.  Classify stars by type, input Temperature, Luminosity, Radius and Absolute Magnitude and returns a numerical type of the star, used by Astronomers. 
 
 
-Work flow:
+Work flow
+    
     stars_model.py - creates a model from trained data using xgb.Classifier
     
     app.py - runs the application on a web server, routes set the user interface in this file and loads the precompiled model in .pkl format using Pickle serialization. Flask is the web app python framework
