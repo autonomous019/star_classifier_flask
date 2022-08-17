@@ -8,7 +8,8 @@ Work flow
     stars_model.py - creates a model from trained data using xgb.Classifier
     
     app.py - runs the application on a web server, routes set the user interface in 
-    this file and loads the precompiled model in .pkl format using Pickle serialization. 
+    this file and loads the precompiled model in .pkl format using Pickle serialization
+    this file is the model in pkl format, xgbcl_model.pkl. 
     Flask is the web app python framework
     
     templates/index.html is the html code, user interface, that is called by app.py
