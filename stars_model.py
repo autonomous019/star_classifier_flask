@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import pyplot
 import seaborn as sns
 import xgboost as xgb
 from xgboost import XGBClassifier
@@ -190,6 +191,7 @@ these values gave a badd result so have to check baseline arguments as valid or 
 xgbc = XGBClassifier(max_depth=3, #how many levels of tree to grow, higher the num greater chance of overfitting
                      subsample = 0.5, #fraction of observations to be randomly sampled for each tree
                      n_estimators=200,
+                     eval_metric=['merror','mlogloss'],
                      learning_rate=0.1, #alias of eta hyperparam, the step size shrinkage used in update to prevent overfit should be .01-.2
                      min_child_weight=1, #min sum of weights of all obs rquired in a child, high val can lead to underfitting, tune using CV
                      reg_alpha=0, #L! loss func regularization term on weights. higher more conservative the model
@@ -203,33 +205,149 @@ xgbc.fit(X_train, y_train)
 y_predict = xgbc.predict(X_test)
 y_train_predict = xgbc.predict(X_train)
 
+
+
+##################Evalutation of results########################
 # - cross validataion
 scores = cross_val_score(xgbc, X_train, y_train, cv=5)
 print("Mean cross-validation score: %.2f" % scores.mean())
 
+
+'''
+K-Fold Cross Validation
+As there is never enough data to train your model, removing a part of it for validation poses a problem of underfitting. By reducing the training data, we risk losing important patterns/ trends in data set, which in turn increases error induced by bias. So, what we require is a method that provides ample data for training the model and also leaves ample data for validation. K Fold cross validation does exactly that.
+
+In K Fold cross validation, the data is divided into k subsets. Now the holdout method is repeated k times, such that each time, one of the k subsets is used as the test set/ validation set and the other k-1 subsets are put together to form a training set. The error estimation is averaged over all k trials to get total effectiveness of our model. As can be seen, every data point gets to be in a validation set exactly once, and gets to be in a training set k-1 times. This significantly reduces bias as we are using most of the data for fitting, and also significantly reduces variance as most of the data is also being used in validation set. Interchanging the training and test sets also adds to the effectiveness of this method. As a general rule and empirical evidence, K = 5 or 10 is generally preferred, but nothing’s fixed and it can take any value.
+
+sklearn provides the functionality for this cross check
+'''
 kfold = KFold(n_splits=10, shuffle=True)
 kf_cv_scores = cross_val_score(xgbc, X_train, y_train, cv=kfold )
 print("K-fold CV average score: %.2f" % kf_cv_scores.mean())
 
+'''
+Confusion Matrix 
+more information: https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62
+
+a performance measurement for machine learning classification problem where output can be two or more classes. It is a table with 4 different combinations of predicted and actual values.
+True Positive, False Positive, True Negative, True Positive
+It is extremely useful for measuring Recall, Precision, Specificity, Accuracy, and most importantly AUC-ROC curves.
+
+Recall
+    is calculated as Recall = TP / TP + FN
+    The above equation can be explained by saying, from all the positive classes, how many we predicted correctly. Recall should be high as possible.
+
+Precision
+    is calculated as Precision = TP / TP + FP
+    The above equation can be explained by saying, from all the classes we have predicted as positive, how many are actually positive. Precision should be high as possible.
+
+Accuracy
+    From all the classes (positive and negative), how many of them we have predicted correctly. In this case, it will be 4/7. Accuracy should be high as possible.
+
+F-measure 
+    is calculated as 2*Recall*Precision / Recall+Precision
+    It is difficult to compare two models with low precision and high recall or vice versa. So to make them comparable, we use F-Score. F-score helps to measure Recall and Precision at the same time. It uses Harmonic Mean in place of Arithmetic Mean by punishing the extreme values more.
+'''
 ypred = xgbc.predict(X_test)
 cm = confusion_matrix(y_test,ypred)
 print(cm)
 
+'''
+Accuracy Score is not the best way to measure the fit of the model
+'''
 print('train accuracy', accuracy_score(y_train, y_train_predict))
 print('test accuracy', accuracy_score(y_test, ypred))
 
+'''
+Additional evaluations on the fit of the model: log loss and classification error
 
+logloss: Log loss, short for logarithmic loss is a loss function for classification that quantifies the price paid for the inaccuracy of predictions in classification problems. Log loss penalizes false classifications by taking into account the probability of classification.
+Remember that there is another important metric heavily used to evaluate the performance of a classification algorithm - ROC-AUC score
+Log-loss is indicative of how close the prediction probability is to the corresponding actual/true value (0 or 1 in case of binary classification). The more the predicted probability diverges from the actual value, the higher is the log-loss value.
+
+eval_metric see https://xgboost.readthedocs.io/en/latest/python/examples/sklearn_evals_result.html
+'''
+xgbc.fit(X_train, y_train,
+        eval_set=[(X_train, y_train), (X_test, y_test)],
+        verbose=True)
+# Load evals result by calling the evals_result() function
+evals_result = xgbc.evals_result()
+
+'''
+print('Access logloss metric directly from validation_0:')
+print(evals_result['validation_0']['mlogloss'])
+
+print('')
+print('Access metrics through a loop:')
+for e_name, e_mtrs in evals_result.items():
+    print('- {}'.format(e_name))
+    for e_mtr_name, e_mtr_vals in e_mtrs.items():
+        print('   - {}'.format(e_mtr_name))
+        print('      - {}'.format(e_mtr_vals))
+
+print('')
+'''
+print('Access complete dict:')
+print(evals_result)
+
+results = evals_result
+epochs = len(results["validation_0"]["merror"])
+x_axis = range(0, epochs)
+# plot log loss
+fig, ax = pyplot.subplots(figsize=(12, 12))
+ax.plot(x_axis, results["validation_0"]["mlogloss"], label="Train")
+ax.plot(x_axis, results["validation_1"]["mlogloss"], label="Test")
+ax.legend()
+pyplot.ylabel("Log Loss")
+pyplot.title("XGBoost Log Loss")
+pyplot.show()
+
+fig, ax = pyplot.subplots(figsize=(12, 12))
+ax.plot(x_axis, results["validation_0"]["merror"], label="Train")
+ax.plot(x_axis, results["validation_1"]["merror"], label="Test")
+ax.legend()
+pyplot.ylabel("Classification Error")
+pyplot.title("XGBoost Classification Error")
+pyplot.show()
+
+
+
+
+#########################Feature Importance####################################
+
+'''
 #Feature importances and visualising it see https://www.kaggle.com/general/237792
+Be careful when interpreting your features importance in XGBoost, since the ‘feature importance’ results might be misleading!
+# importance_types = [‘weight’, ‘gain’, ‘cover’, ‘total_gain’, ‘total_cover’]
+f = ‘gain’
+
+get_score(fmap='', importance_type='weight')
+Get feature importance of each feature. For tree model Importance type can be defined as:
+
+‘weight’: the number of times a feature is used to split the data across all trees.
+
+‘gain’: the average gain across all splits the feature is used in.
+
+‘cover’: the average coverage across all splits the feature is used in.
+
+‘total_gain’: the total gain across all splits the feature is used in.
+
+‘total_cover’: the total coverage across all splits the feature is used in.
+
+'''
 print(xgbc.feature_importances_)
 
 feat_importances = pd.Series(xgbc.feature_importances_, index = X.columns)
 feat_importances.nlargest(5).plot(kind = 'barh')
 
+
+
+
+#wrapping up
 plt.show()
+xgbc.save_model("model.json") #save model in json format
 
-xgbc.save_model("model.json")
-
-#Pickling and dumping
+#Pickling and dumping, saving model in pkl format
 file = open('xgbcl_model.pkl', 'wb')
 pickle.dump(xgbc, file)
 
