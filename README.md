@@ -19,4 +19,6 @@ Work flow
     
     if you don't want to generate a model on your own, just run app.py in a vitrual 
     environment in PyCharm, when setting up PyCharm be sure to add Flask 
-    when creating the virtual environment. 
+    when creating the virtual environment.
+    
+    see requirements.txt for Python libraries required to run the app
